@@ -12,7 +12,9 @@
 #define redPin 9
 #define greenPin 10
 #define bluePin 11
-int black[3]  = { 0, 0, 0 };
+/*
+ * 
+ int black[3]  = { 0, 0, 0 };
 int white[3]  = { 255, 255, 255 };
 int red[3]    = { 255, 0, 0 };
 int orange[3] = {255, 32, 0 };
@@ -24,7 +26,8 @@ int blue[3]   = { 0, 0, 255 };
 int purple[3] = { 255, 0, 255 };
 int pink[3] = { 255, 0, 55 };
 int dimWhite[3] = { 30, 30, 30 };
-
+*
+ */
 //#define powerPin 5
 void setColor(int red, int green, int blue);
 
@@ -133,7 +136,7 @@ void fade(){
   int i = 100;
   while(i!=0){ go(); i-= 1; }
 }
-
+/*
 void setColor(int red, int green, int blue)
 {
   #ifdef COMMON_ANODE
@@ -146,3 +149,4 @@ void setColor(int red, int green, int blue)
   analogWrite(greenPin, green);
   analogWrite(bluePin, blue);  
 }
+*/

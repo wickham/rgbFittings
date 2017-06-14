@@ -240,7 +240,7 @@ void loop(void)
         
        if(!pressed && (buttnum == 6))
           {
-          fade();
+          newFade();
           
           pressed = packetbuffer[3] - '0';
 
