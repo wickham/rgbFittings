@@ -1,10 +1,16 @@
 #include <string.h>
 #include <Arduino.h>
 #include <SPI.h>
-
+#include "BluefruitConfig.h"
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
+#define COMMON_ANODE
+uint8_t readPacket(Adafruit_BLE *blu, uint16_t timeout);
+extern uint8_t packetbuffer[];
+int R = 0;
+int G = 0;
+int B = 0;
 /*
 * Code for cross-fading 3 LEDs, red, green and blue (RGB) 
 * To create fades, you need to do two things: 
@@ -59,19 +65,35 @@
 */ 
 
 // Output
-int redPin = 9;   // Red LED,   connected to digital pin 9
+int redPin = 11;   // Red LED,   connected to digital pin 9
 int grnPin = 10;  // Green LED, connected to digital pin 10
-int bluPin = 11;  // Blue LED,  connected to digital pin 11
+int bluPin = 9;  // Blue LED,  connected to digital pin 11
 
 // Color arrays
+/*
+ *int black[3]  = { 0, 0, 0 };
+  int white[3]  = { 100, 100, 100 };
+  int red[3]    = { 100, 0, 0 };
+  int orange[3] = {
+  int green[3]  = { 0, 100, 0 };
+  int blue[3]   = { 0, 0, 100 };
+  int yellow[3] = { 40, 95, 0 };
+  int dimWhite[3] = { 30, 30, 30 };
+*/
+
 int black[3]  = { 0, 0, 0 };
-int white[3]  = { 100, 100, 100 };
-int red[3]    = { 100, 0, 0 };
-int orange[3] = {
-int green[3]  = { 0, 100, 0 };
-int blue[3]   = { 0, 0, 100 };
-int yellow[3] = { 40, 95, 0 };
+int white[3]  = { 255, 255, 255 };
+int red[3]    = { 255, 0, 0 };
+int orange[3] = {255, 32, 0 };
+int yellow[3] = { 255, 106, 0 };
+int green[3]  = { 0, 255, 0 };
+int teal[3] = { 0, 255, 255 };
+int ltblue[3] = { 0, 127, 255 };
+int blue[3]   = { 0, 0, 255 };
+int purple[3] = { 255, 0, 255 };
+int pink[3] = { 255, 0, 55 };
 int dimWhite[3] = { 30, 30, 30 };
+
 // etc.
 
 // Set initial color
@@ -79,37 +101,40 @@ int redVal = black[0];
 int grnVal = black[1]; 
 int bluVal = black[2];
 
-int wait = 1;      // 10ms internal crossFade delay; increase for slower fades
+int wait = 10;      // 10ms internal crossFade delay; increase for slower fades
 int hold = 0;       // Optional hold when a color is complete, before the next crossFade
-int DEBUG = 1;      // DEBUG counter; if set to 1, will write values back via serial
+int DEBUG = 0;      // DEBUG counter; if set to 1, will write values back via serial
 int loopCount = 60; // How often should DEBUG report?
-int repeat = 3;     // How many times should we loop before stopping? (0 for no stop)
+int repeat = 1;     // How many times should we loop before stopping? (0 for no stop)
 int j = 0;          // Loop counter for repeat
 
 // Initialize color variables
 int prevR = redVal;
 int prevG = grnVal;
 int prevB = bluVal;
-
-void crossFade(int color[3]);
+Adafruit_BluefruitLE_SPI blu(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+int crossFade(int color[3]);
 
 
 // Main program: list the order of crossfades
 void newFade()
 {
-  crossFade(red);
-  crossFade(orange);
-  crossFade(yellow);
+  int stop = 1;
+  while(repeat){
+  stop = crossFade(red);
+  //crossFade(orange);
+  //crossFade(yellow);
   crossFade(green);
+//  crossFade(teal);
+//  crossFade(white);
+ // crossFade(ltblue);
   crossFade(blue);
-
-  if (repeat) { // Do we loop a finite number of times?
-    j += 1;
-    if (j >= repeat) { // Are we there yet?
-      return(j);         // If so, stop.
-    }
+ // crossFade(purple);
+ // crossFade(pink);
+  
   }
 }
+
 
 /* BELOW THIS LINE IS THE MATH -- YOU SHOULDN'T NEED TO CHANGE THIS FOR THE BASICS
 * 
@@ -180,24 +205,29 @@ int calculateVal(int step, int val, int i) {
 *  the color values to the correct pins.
 */
 
-void crossFade(int color[3]) {
+int crossFade(int color[3]) {
   // Convert to 0-255
-  int R = (color[0] * 255) / 100;
-  int G = (color[1] * 255) / 100;
-  int B = (color[2] * 255) / 100;
+ // int R = (color[0] * 255) / 100;
+ // int G = (color[1] * 255) / 100;
+ // int B = (color[2] * 255) / 100;
+ int R = color[0];
+ int G = color[1];
+ int B = color[2];
 
-  int stepR = calculateStep(prevR, R);
+ int stepR = calculateStep(prevR, R);
   int stepG = calculateStep(prevG, G); 
   int stepB = calculateStep(prevB, B);
-
+uint8_t len = readPacket(&blu, BLE_READPACKET_TIMEOUT);
+    if (packetbuffer[1] == 'C') {return 0;}
   for (int i = 0; i <= 1020; i++) {
     redVal = calculateVal(stepR, redVal, i);
     grnVal = calculateVal(stepG, grnVal, i);
     bluVal = calculateVal(stepB, bluVal, i);
 
-    analogWrite(redPin, redVal);   // Write current values to LED pins
-    analogWrite(grnPin, grnVal);      
-    analogWrite(bluPin, bluVal); 
+    
+    analogWrite(redPin, 255 - redVal);   // Write current values to LED pins
+    analogWrite(grnPin, 255 - grnVal);      
+    analogWrite(bluPin, 255 - bluVal); 
 
     delay(wait); // Pause for 'wait' milliseconds before resuming the loop
 
@@ -221,3 +251,4 @@ void crossFade(int color[3]) {
   prevB = bluVal;
   delay(hold); // Pause for optional 'wait' milliseconds before resuming the loop
 }
+

@@ -28,9 +28,9 @@
 #define COMMON_ANODE
 #define delayTime 20
 #define TRUE
-#define redPin 9
+#define redPin 11
 #define greenPin 10
-#define bluePin 11
+#define bluePin 9
 
 /*=========================================================================
     APPLICATION SETTINGS
@@ -220,7 +220,7 @@ void loop(void)
     Serial.println(blue, HEX);
     analogWrite(bluePin, 255 - blue);
   }
-//pulse(255,0,0);
+
 
   // Buttons
   if (packetbuffer[1] == 'B') 
@@ -231,21 +231,23 @@ void loop(void)
       if (pressed) 
         {
         Serial.println(" pressed");
+     
         }
      
       else 
         {
         Serial.println(" released");
-        }
-        
-       if(!pressed && (buttnum == 6))
+        switch(buttnum)
           {
-          fade();
-          
-          pressed = packetbuffer[3] - '0';
-
+          case (1):
+            newFade();
+            break;
+          default:
+          return;
           }
           
+        }
+
     
      }
 
