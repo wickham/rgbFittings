@@ -101,13 +101,13 @@ int redVal = black[0];
 int grnVal = black[1]; 
 int bluVal = black[2];
 
-int wait = 10;      // 10ms internal crossFade delay; increase for slower fades
-int hold = 0;       // Optional hold when a color is complete, before the next crossFade
+int wait = 5;      // 10ms internal crossFade delay; increase for slower fades
+int hold = 2;       // Optional hold when a color is complete, before the next crossFade
 int DEBUG = 0;      // DEBUG counter; if set to 1, will write values back via serial
 int loopCount = 60; // How often should DEBUG report?
 int repeat = 1;     // How many times should we loop before stopping? (0 for no stop)
 int j = 0;          // Loop counter for repeat
-
+  int stop = 1;
 // Initialize color variables
 int prevR = redVal;
 int prevG = grnVal;
@@ -119,20 +119,20 @@ int crossFade(int color[3]);
 // Main program: list the order of crossfades
 void newFade()
 {
-  int stop = 1;
+
   while(repeat){
-  stop = crossFade(red);
-  //crossFade(orange);
-  //crossFade(yellow);
+  crossFade(red);
+  crossFade(orange);
+  crossFade(yellow);
   crossFade(green);
 //  crossFade(teal);
-//  crossFade(white);
+  crossFade(white);
  // crossFade(ltblue);
   crossFade(blue);
- // crossFade(purple);
- // crossFade(pink);
-  
+ crossFade(purple);
+ crossFade(pink);
   }
+  return;
 }
 
 
@@ -217,14 +217,14 @@ int crossFade(int color[3]) {
  int stepR = calculateStep(prevR, R);
   int stepG = calculateStep(prevG, G); 
   int stepB = calculateStep(prevB, B);
-uint8_t len = readPacket(&blu, BLE_READPACKET_TIMEOUT);
-    if (packetbuffer[1] == 'C') {return 0;}
+
   for (int i = 0; i <= 1020; i++) {
     redVal = calculateVal(stepR, redVal, i);
     grnVal = calculateVal(stepG, grnVal, i);
     bluVal = calculateVal(stepB, bluVal, i);
 
-    
+  
+
     analogWrite(redPin, 255 - redVal);   // Write current values to LED pins
     analogWrite(grnPin, 255 - grnVal);      
     analogWrite(bluPin, 255 - bluVal); 
