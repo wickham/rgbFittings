@@ -1,11 +1,13 @@
 #include <string.h>
 #include <Arduino.h>
 #include <SPI.h>
-
+#include "BluefruitConfig.h"
 #include "Adafruit_BLE.h"
 #include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
 #define COMMON_ANODE
+uint8_t readPacket(Adafruit_BLE *blu, uint16_t timeout);
+extern uint8_t packetbuffer[];
 int R = 0;
 int G = 0;
 int B = 0;
@@ -110,15 +112,16 @@ int j = 0;          // Loop counter for repeat
 int prevR = redVal;
 int prevG = grnVal;
 int prevB = bluVal;
-
-void crossFade(int color[3]);
+Adafruit_BluefruitLE_SPI blu(BLUEFRUIT_SPI_CS, BLUEFRUIT_SPI_IRQ, BLUEFRUIT_SPI_RST);
+int crossFade(int color[3]);
 
 
 // Main program: list the order of crossfades
 void newFade()
 {
+  int stop = 1;
   while(repeat){
-  crossFade(red);
+  stop = crossFade(red);
   //crossFade(orange);
   //crossFade(yellow);
   crossFade(green);
@@ -202,7 +205,7 @@ int calculateVal(int step, int val, int i) {
 *  the color values to the correct pins.
 */
 
-void crossFade(int color[3]) {
+int crossFade(int color[3]) {
   // Convert to 0-255
  // int R = (color[0] * 255) / 100;
  // int G = (color[1] * 255) / 100;
@@ -214,12 +217,14 @@ void crossFade(int color[3]) {
  int stepR = calculateStep(prevR, R);
   int stepG = calculateStep(prevG, G); 
   int stepB = calculateStep(prevB, B);
-
+uint8_t len = readPacket(&blu, BLE_READPACKET_TIMEOUT);
+    if (packetbuffer[1] == 'C') {return 0;}
   for (int i = 0; i <= 1020; i++) {
     redVal = calculateVal(stepR, redVal, i);
     grnVal = calculateVal(stepG, grnVal, i);
     bluVal = calculateVal(stepB, bluVal, i);
 
+    
     analogWrite(redPin, 255 - redVal);   // Write current values to LED pins
     analogWrite(grnPin, 255 - grnVal);      
     analogWrite(bluPin, 255 - bluVal); 
