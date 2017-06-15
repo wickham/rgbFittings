@@ -80,7 +80,7 @@ int bluPin = 9;  // Blue LED,  connected to digital pin 11
   int yellow[3] = { 40, 95, 0 };
   int dimWhite[3] = { 30, 30, 30 };
 */
-
+//colors in 0-255 scale
 int black[3]  = { 0, 0, 0 };
 int white[3]  = { 255, 255, 255 };
 int red[3]    = { 255, 0, 0 };
